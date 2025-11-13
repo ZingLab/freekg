@@ -98,7 +98,7 @@ class AudioProcessor {
     }
 
     /**
-     * Create downloadable audio cache for debugging
+     * Create playable audio cache for debugging (inline player)
      */
     createAudioCache() {
         if (this.recordingData.length === 0) return;
@@ -107,7 +107,7 @@ class AudioProcessor {
         const wavBlob = this.encodeWAV(this.recordingData, this.sampleRate);
         const url = URL.createObjectURL(wavBlob);
         
-        // Store for potential download
+        // Store for debugging
         this.cachedAudioBuffer = {
             url: url,
             blob: wavBlob,
@@ -116,11 +116,91 @@ class AudioProcessor {
             samples: this.recordingData.length
         };
 
-        console.log('Audio cached - download link:', url);
+        console.log('Audio cached - playable URL:', url);
         console.log('Cache info:', this.cachedAudioBuffer);
 
-        // Optional: Create download button for debugging
-        this.addDownloadButton(url);
+        // Create inline audio player
+        this.createAudioPlayer(url);
+    }
+
+    /**
+     * Create an inline audio player that works on mobile and desktop
+     */
+    createAudioPlayer(url) {
+        let playerContainer = document.getElementById('audioPlayerContainer');
+        
+        // Remove existing player if present
+        if (playerContainer) {
+            playerContainer.remove();
+        }
+
+        // Create container
+        playerContainer = document.createElement('div');
+        playerContainer.id = 'audioPlayerContainer';
+        playerContainer.style.cssText = `
+            display: block;
+            margin: 15px auto;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            text-align: center;
+            max-width: 400px;
+        `;
+
+        // Create label
+        const label = document.createElement('p');
+        label.textContent = '🔊 Play Recorded Audio (Debug)';
+        label.style.cssText = 'margin: 0 0 10px 0; font-weight: bold; font-size: 14px; color: #333;';
+        playerContainer.appendChild(label);
+
+        // Create audio element
+        const audio = document.createElement('audio');
+        audio.id = 'recordedAudio';
+        audio.src = url;
+        audio.controls = true;
+        audio.style.cssText = `
+            width: 100%;
+            height: 30px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        `;
+        playerContainer.appendChild(audio);
+
+        // Create download button
+        const downloadBtn = document.createElement('button');
+        downloadBtn.textContent = '⬇️ Download WAV';
+        downloadBtn.style.cssText = `
+            display: block;
+            width: 100%;
+            padding: 8px 12px;
+            background: #666;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 8px;
+        `;
+        downloadBtn.onclick = () => {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `freekg-recording-${Date.now()}.wav`;
+            a.click();
+        };
+        playerContainer.appendChild(downloadBtn);
+
+        // Insert into results section
+        const resultsSection = document.getElementById('results');
+        if (resultsSection) {
+            // Insert after the waveform canvas
+            const canvas = resultsSection.querySelector('#waveformCanvas');
+            if (canvas && canvas.nextElementSibling) {
+                canvas.nextElementSibling.insertAdjacentElement('beforebegin', playerContainer);
+            } else {
+                resultsSection.insertBefore(playerContainer, resultsSection.querySelector('#resultMessage'));
+            }
+        }
     }
 
     /**
@@ -157,27 +237,6 @@ class AudioProcessor {
         }
 
         return new Blob([buffer], { type: 'audio/wav' });
-    }
-
-    /**
-     * Add download button to UI for debugging
-     */
-    addDownloadButton(url) {
-        let downloadBtn = document.getElementById('downloadAudioBtn');
-        if (!downloadBtn) {
-            downloadBtn = document.createElement('button');
-            downloadBtn.id = 'downloadAudioBtn';
-            downloadBtn.textContent = '🔊 Download Recording (Debug)';
-            downloadBtn.style.cssText = 'display:block; margin:10px auto; padding:10px 20px; background:#999; color:white; border:none; border-radius:5px; cursor:pointer;';
-            document.querySelector('main').appendChild(downloadBtn);
-        }
-        
-        downloadBtn.onclick = () => {
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `freekg-recording-${Date.now()}.wav`;
-            a.click();
-        };
     }
 
     /**
@@ -221,7 +280,7 @@ class AudioProcessor {
     /**
      * Detect heart rate from filtered audio data
      */
-    detectHeartRate(data) {
+    detectHeartRate(data, recordingDuration = 15) {
         const filtered = this.bandpassFilter(data);
         
         // Find peaks in the signal
@@ -229,23 +288,16 @@ class AudioProcessor {
         
         console.log(`Peaks found: ${peaks.length}`, peaks.slice(0, 10));
 
-        if (peaks.length < 2) {
-            return { bpm: 0, confidence: 'low', peaks: [] };
+        if (peaks.length < 1) {
+            return { bpm: 0, confidence: 'low', peaks: [], recordedBeats: 0 };
         }
 
-        // Calculate intervals between peaks (in samples)
-        const intervals = [];
-        for (let i = 1; i < peaks.length; i++) {
-            intervals.push(peaks[i] - peaks[i - 1]);
-        }
+        // Simple calculation: number of beats * (60 / recording duration)
+        // For 15-second recording: beats * 4
+        const bpm = Math.round(peaks.length * (60 / recordingDuration));
 
-        // Calculate average interval in samples
-        const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
-        
-        // Convert to BPM: (samples per beat / samples per second) * 60
-        const bpm = Math.round((60 * this.sampleRate) / (avgInterval));
-
-        console.log(`Average interval: ${avgInterval.toFixed(2)} samples`);
+        console.log(`Recorded beats: ${peaks.length}`);
+        console.log(`Recording duration: ${recordingDuration}s`);
         console.log(`Calculated BPM: ${bpm}`);
 
         // Validate BPM is in reasonable range (40-200)
@@ -255,6 +307,7 @@ class AudioProcessor {
             bpm: Math.max(40, Math.min(200, bpm)),
             confidence: confidence,
             peaks: peaks,
+            recordedBeats: peaks.length,
             waveform: filtered
         };
     }
