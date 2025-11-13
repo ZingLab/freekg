@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Primary Meta Tags -->
+    <title>FreeKG - Fun Heart Rate Monitor</title>
+    <meta name="title" content="FreeKG - Fun Heart Rate Monitor">
+    <meta name="description" content="FreeKG is a fun, experimental heart rate detector that uses your microphone to measure your pulse. Hold your phone to your neck and get instant heart rate readings. For entertainment only.">
+    <meta name="keywords" content="heart rate monitor, pulse detector, heart rate, health, fitness, microphone, experimental, freekg">
+    <meta name="author" content="ZingLab">
+    <meta name="language" content="English">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://freekg.com/">
+    <meta property="og:title" content="FreeKG - Fun Heart Rate Monitor">
+    <meta property="og:description" content="A fun, experimental heart rate detector using your phone's microphone. Hold your phone to your neck and get instant heart rate readings.">
+    <meta property="og:image" content="https://freekg.com/position-guide.webp">
+    <meta property="og:site_name" content="FreeKG">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://freekg.com/">
+    <meta property="twitter:title" content="FreeKG - Fun Heart Rate Monitor">
+    <meta property="twitter:description" content="A fun, experimental heart rate detector using your phone's microphone. Hold your phone to your neck and get instant heart rate readings.">
+    <meta property="twitter:image" content="https://freekg.com/position-guide.webp">
+    
+    <!-- Additional SEO Meta Tags -->
+    <meta name="robots" content="index, follow">
+    <meta name="revisit-after" content="7 days">
+    <meta name="theme-color" content="#FF6B6B">
+    <link rel="canonical" href="https://freekg.com/">
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JFH3ZZ51GV"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        
+        gtag('config', 'G-JFH3ZZ51GV');
+    </script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>FreeKG</h1>
+            <p class="tagline">A fun, experimental heart rate detector</p>
+            <p class="disclaimer">⚠️ For entertainment only - Not a medical device</p>
+        </header>
+
+        <main>
+            <div id="step1" class="step active">
+                <div class="step-number">Step 1</div>
+                <h2>Grant Microphone Access</h2>
+                <p>We need your microphone to detect vibrations from your pulse.</p>
+                <button id="requestMicBtn" class="primary-btn">Enable Microphone</button>
+                <p id="micStatus" class="status-text"></p>
+            </div>
+
+            <div id="step2" class="step">
+                <div class="step-number">Step 2</div>
+                <h2>Position Your Phone</h2>
+                <p>Hold your phone's microphone firmly against your neck, near your jugular vein.</p>
+                <div class="image-placeholder">
+                    <img id="positionImage" src="position-guide.webp" alt="Phone positioning guide" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <div class="placeholder-text" style="display:none;">
+                        📱 ➡️ 🧑<br>
+                        <small>Hold microphone to neck</small>
+                    </div>
+                </div>
+                <button id="startRecordingBtn" class="primary-btn">Start Recording</button>
+            </div>
+
+            <div id="step3" class="step">
+                <div class="step-number">Step 3</div>
+                <h2>Recording...</h2>
+                <p>Keep the phone steady against your neck.</p>
+                <div class="progress-container">
+                    <div id="progressBar" class="progress-bar"></div>
+                </div>
+                <p id="recordingStatus" class="status-text">Recording for 15 seconds...</p>
+            </div>
+
+            <div id="results" class="step">
+                <div class="step-number">Results</div>
+                <h2>Your Heart Rate</h2>
+                <div id="heartRateDisplay" class="heart-rate-display">
+                    <span id="bpmValue">--</span>
+                    <span class="bpm-label">BPM</span>
+                </div>
+                <canvas id="waveformCanvas"></canvas>
+                <p id="resultMessage" class="result-message"></p>
+                <button id="tryAgainBtn" class="secondary-btn">Try Again</button>
+            </div>
+        </main>
+
+    <!-- Footer Section -->
+    <footer id="footer">
+        <div class="footer">
+            <div class="copyright">
+                <p>&copy;
+                    <script>document.write(new Date().getFullYear())</script> <a href="https://zinglab.com/?ref=freekg">ZingLab</a>. All rights reserved.
+                </p>
+            </div>
+        </div>
+    </footer>
+    </div>
+
+    <script src="audio-processor.js"></script>
+    <script src="ui-controller.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
